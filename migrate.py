@@ -1,18 +1,17 @@
 # table & create all
 # flask 的東西是放在另外一邊
-# 去查一下各欄位預設值的 document，為啥那個中文資料不設預設值勒，例如不講是不是主 key
+# document 不是 primary key 的地方沒有特別設為 False
 # 一個 user 對多個 task
-# Class 名 / table 名 使用時機
+# Class 名 / table 名 使用時機 ?
 # db.String(size) 都要指定長度 -> 更新 document
-# user id 不是很確定 UUID 怎麼發的，待研究
+# uuid 生的字串應該長 32
 
 from app import app, db
-from sqlalchemy.dialects.postgresql import UUID
-import uuid # 這行幹嘛用的 -> 好像是要 generate uuid 的時候才會用到，給型別時（這個檔案）用不到
+import uuid
 
 class User( db.model ):
     __tablename__ = 'user'
-    user_id = db.Column(UUID(as_uuid=True), primary_key = True, unique = True, nullable = False)
+    user_id = db.Column(db.string(32), primary_key = True, unique = True, nullable = False)
     name = db.Column(db.String(30), unique = True, nullable = False)
     password = db.Column(db.String(64), unique = False, nullable = False)
     salt = db.Column(db.String(10), unique = False, nullable = False)
@@ -32,7 +31,7 @@ class User( db.model ):
 
 class Task( db.model ):
     __tablename__ = 'task'
-    task_id = db.Column(UUID(as_uuid=True), primary_key = True, unique = True, nullable = False)
+    task_id = db.Column(db.string(32), primary_key = True, unique = True, nullable = False)
     title = db.Column(db.String(30), unique = True, nullable = False)
     content = db.Column(db.String(5000), unique = False, nullable = False)
     

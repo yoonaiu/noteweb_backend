@@ -1,4 +1,4 @@
-from __main__ import api
+from app import app
 import auth
 import task
 

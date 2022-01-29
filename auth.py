@@ -64,10 +64,6 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
                 'username' : query.name
             }, 200
 
-
-    def get(self, jwt):  # 取得帳戶資訊，傳進來的會是 jwt, 用 jwt 去看就好，jwt 可看出 userid
-        pass
-
     def post(self): # register 一個帳戶
         arg = self.parser1.parse_args()  # 處理前端發來的 json request -> name, password
         re1 = check_name( arg['name'] )
@@ -150,11 +146,3 @@ class Auth_login(Resource):
             return {
                 'message' : 'the password is incorrect'
             }, 401
-    def put(self, jwt):  # 更新密碼，need jwt
-        arg = self.parser1.parse_args()
-        arg['new_password'] # 串資料庫
-
-
-class Auth_login(Resource):
-    def post(self, name, password): # 登入
-        pass

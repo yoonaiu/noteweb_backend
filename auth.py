@@ -1,18 +1,15 @@
 # self 有點像 this 的感覺
+from app import db, User, Task
 from click import password_option
 from flask_restful import Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from numpy import require
-from app import db
-from migrate import User, Task
-import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
-import random
 from flask_jwt_extended import JWTManager
+import uuid
+import random
 
 # 寫在參數列的東西是該韓式需要的東西，但應該不是到時候接收 json 資料報的接收方式
-
-list = 
 
 def get_salt():
     seed = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_ =-"
@@ -32,30 +29,26 @@ def check_name( name ):
     else :
         return 200
 
-    
+
 def check_password( password ):
     if len(password) < 6 or len(password) > 30 :
         return 422
 
 
-
-
 class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些條件以便處理，但不一定要是從網址傳進來的，可能也可以是 json 形式的資料報
-    
+
     # post 會用到的東西，原本的寫法 :
     # 不是很確定為甚麼會用到 parser, 不能直接用參數傳入嗎～～ -> 還是寫在函式參數列的東西只能是用網址傳入的東西
     # 所以如果是 json or form 發過來的東西就要用 parser 接
     # name, password 格式預設先用前端處理掉，後端只看有沒有重複
-    parser1 = reqparse.RequestParser() 
+    parser1 = reqparse.RequestParser()
     parser1.add_argument( 'name', required = True ) # required / help 應該是前端會處理掉的東西，可以確定前端發過來的東西是通過標準符合格式的
     parser1.add_argument( 'password', required = True )
-    
-    parser2 = reqparse.RequestParser() 
+
+    parser2 = reqparse.RequestParser()
     parser2.add_argument( 'new_password', required = True )
 
-    
-    
-    
+
     def get(self, jwt):  # 取得帳戶資訊，傳進來的會是 jwt, 用 jwt 去看就好，jwt 可看出 userid
         pass
 
@@ -76,7 +69,7 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
             return {
                 'message' : 'the password format is wrong'
             }, 422
-        
+
         # 順利通過檢查就會來到這
         name = arg['name']
         salt = get_salt()
@@ -89,13 +82,12 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
             'access_token' : access_token
         }, 200
 
-        
+
     def put(self, jwt):  # 更新密碼，need jwt
         arg = self.parser1.parse_args()
         arg['new_password'] # 串資料庫
-        
+
 
 class Auth_login(Resource):
     def post(self, name, password): # 登入
         pass
-

@@ -9,9 +9,9 @@
 from app import app, db
 import uuid
 
-class User( db.model ):
+class User( db.Model ):
     __tablename__ = 'user'
-    user_id = db.Column(db.string(32), primary_key = True, unique = True, nullable = False)
+    user_id = db.Column(db.String(32), primary_key = True, unique = True, nullable = False)
     name = db.Column(db.String(30), unique = True, nullable = False)
     hash_password = db.Column(db.String(64), unique = False, nullable = False)
     salt = db.Column(db.String(10), unique = False, nullable = False)
@@ -29,9 +29,9 @@ class User( db.model ):
 
 
 
-class Task( db.model ):
+class Task( db.Model ):
     __tablename__ = 'task'
-    task_id = db.Column(db.string(32), primary_key = True, unique = True, nullable = False)
+    task_id = db.Column(db.String(32), primary_key = True, unique = True, nullable = False)
     title = db.Column(db.String(30), unique = True, nullable = False)
     content = db.Column(db.String(5000), unique = False, nullable = False)
     

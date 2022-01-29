@@ -13,17 +13,17 @@ class User( db.model ):
     __tablename__ = 'user'
     user_id = db.Column(db.string(32), primary_key = True, unique = True, nullable = False)
     name = db.Column(db.String(30), unique = True, nullable = False)
-    password = db.Column(db.String(64), unique = False, nullable = False)
+    hash_password = db.Column(db.String(64), unique = False, nullable = False)
     salt = db.Column(db.String(10), unique = False, nullable = False)
     
     # 一對多的一 -> 設定 relationship
     # 未來在讀 task 表格時，就可以用 Task.user 讀到 user 內的資料了
     db_user_task = db.relationship("Task", backref="user")
 
-    def __init__(self, user_id, name, password, salt) :  # 初始化沒有 task_id
+    def __init__(self, user_id, name, hash_password, salt) :  # 初始化沒有 task_id
         self.user_id = user_id
         self.name = name
-        self.password = password
+        self.hash_password = hash_password
         self.salt = salt
 
 

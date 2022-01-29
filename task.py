@@ -1,4 +1,5 @@
 from flask_restful import Resource
+from app import db
 
 class Task (Resource): 
     def post(self, jwt, title, content):  # 新增一個 task，需要 user 的 jwt

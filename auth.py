@@ -50,7 +50,6 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
     parser2 = reqparse.RequestParser()
     parser2.add_argument( 'new_password', required = True )
 
-<<<<<<< HEAD
     @jwt_required   # 若是沒有提交token或是token內容有問題時會直接返還錯誤 -> 那還會有下面 401 的狀況嗎
     def get(self):  # 取得帳戶資訊，傳進來的會是 jwt, 用 jwt 去看就好，jwt 可看出 userid
         user_id = get_jwt_identity()
@@ -65,11 +64,9 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
                 'username' : query.name
             }, 200
 
-=======
 
     def get(self, jwt):  # 取得帳戶資訊，傳進來的會是 jwt, 用 jwt 去看就好，jwt 可看出 userid
         pass
->>>>>>> 3f013f05ba33b988fde23d27184238c3225e3855
 
     def post(self): # register 一個帳戶
         arg = self.parser1.parse_args()  # 處理前端發來的 json request -> name, password
@@ -104,7 +101,6 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
         }, 200
 
 
-<<<<<<< HEAD
     @jwt_required  # 更新密碼，need jwt
     def put(self):
         arg = self.parser1.parse_args()
@@ -154,7 +150,6 @@ class Auth_login(Resource):
             return {
                 'message' : 'the password is incorrect'
             }, 401
-=======
     def put(self, jwt):  # 更新密碼，need jwt
         arg = self.parser1.parse_args()
         arg['new_password'] # 串資料庫
@@ -163,4 +158,3 @@ class Auth_login(Resource):
 class Auth_login(Resource):
     def post(self, name, password): # 登入
         pass
->>>>>>> 3f013f05ba33b988fde23d27184238c3225e3855

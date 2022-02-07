@@ -7,7 +7,7 @@ from flask_restful import Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from numpy import require
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
 import uuid
 import random
 
@@ -23,7 +23,7 @@ def get_salt():
     return salt
 
 def check_name( name ):
-    name_query = User.query.filter_by(name = name).first()
+    name_query = app.User.query.filter_by(name = name).first()
     if name_query != None :   # 如果已經存在 -> 409 return
         return 409
     elif ( not name.isalnum() ) or ( len(name) > 30 ) :
@@ -79,7 +79,7 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
                 'message' : 'the username format is wrong'
             }, 422
 
-        elif check_password == 422 :
+        elif re2 == 422 :
             return {
                 'message' : 'the password format is wrong'
             }, 422
@@ -90,10 +90,12 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
         hash_password = generate_password_hash(arg['password'] + salt)  # the default hash function is sha1 -> maybe not that safe (?, can change
         user_id = str(uuid.uuid4())
 
-        db.session.add( User(user_id, name, hash_password, salt) )  # arg 從 json 擷取資訊
+        app.db.session.add( app.User(user_id, name, hash_password, salt) )  # arg 從 json 擷取資訊
+        app.db.session.commit()  # need to commit after change
+
         access_token = create_access_token(identity = user_id) # jwt
         return {
-            'access_token' : access_token
+            'access_token' : access_token,
         }, 200
 
 
@@ -117,12 +119,18 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
         salt = query.salt  # use the original salt
         new_hash_password = generate_password_hash( new_password + salt )
         query.hash_password = new_hash_password
+        app.db.session.commit()  # need to commit after change
+
         return {
             'message' : 'successfully change the password'
         }, 200
 
 
 class Auth_login(Resource):
+
+    parser1 = reqparse.RequestParser()
+    parser1.add_argument( 'name', required = True ) # required / help 應該是前端會處理掉的東西，可以確定前端發過來的東西是通過標準符合格式的
+    parser1.add_argument( 'password', required = True )
 
     def post(self): # login
         arg = self.parser1.parse_args()  # -> pass in name, password

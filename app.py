@@ -1,4 +1,5 @@
 from flask import Flask
+from flask import jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource
 
@@ -33,6 +34,7 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1) # 設 jwt expire tim
 jwt.init_app(app) # register this extension to your flask project
 
 
+# token 重發還沒處理好 -> 要怎麼讓前端接住新的 token
 @app.after_request
 def refresh_expiring_jwts(response):
     try:
@@ -41,10 +43,10 @@ def refresh_expiring_jwts(response):
         target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
         if target_timestamp > exp_timestamp:
             access_token = create_access_token(identity=get_jwt_identity())
-            # set_access_cookies(response, access_token)
-            return {
-                'access_token' : access_token,
-            }, 200
+            set_access_cookies(response, access_token)
+            #return {
+            #    'access_token' : access_token
+            # }, 200
         else:
             return response
 
@@ -52,6 +54,16 @@ def refresh_expiring_jwts(response):
         # Case where there is not a valid JWT. Just return the original respone
         return response
 
+'''
+@jwt.expired_token_loader
+def my_expired_token_callback(jwt_header, jwt_payload):
+    print("hello\n\n\n")
+    return jsonify(code = "meanless", err = "the token is expired"), 401
+
+@jwt.invalid_token_loader
+def my_invalid_token_loader_callback(reason):
+    return jsonify(invalid_reason = reason), 401
+'''
 
 # table & create all
 # flask 的東西是放在另外一邊

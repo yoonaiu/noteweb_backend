@@ -1,6 +1,7 @@
 # self 有點像 this 的感覺
 from email import message
 from os import access
+from flask import jsonify
 import app
 from click import password_option
 from flask_restful import Resource, reqparse
@@ -14,6 +15,17 @@ import random
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
+
+
+jwt = app.jwt
+@jwt.expired_token_loader
+def my_expired_token_callback(jwt_header, jwt_payload):
+    print("hello\n\n\n")
+    return jsonify(code = "meanless", err = "the token is expired"), 401
+
+@jwt.invalid_token_loader
+def my_invalid_token_loader_callback(reason):
+    return jsonify(invalid_reason = reason), 401
 
 
 # 寫在參數列的東西是該韓式需要的東西，但應該不是到時候接收 json 資料報的接收方式
@@ -55,7 +67,7 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
     parser2 = reqparse.RequestParser()
     parser2.add_argument( 'new_password', required = True )
 
-    @jwt_required   # 若是沒有提交token或是token內容有問題時會直接返還錯誤 -> 那還會有下面 401 的狀況嗎
+    @jwt_required(optional = True)   # 若是沒有提交token或是token內容有問題時會直接返還錯誤 -> 那還會有下面 401 的狀況嗎
     def get(self):  # 取得帳戶資訊，傳進來的會是 jwt, 用 jwt 去看就好，jwt 可看出 userid
         user_id = get_jwt_identity()
         query = app.User.query.filter_by(user_id = user_id).first()
@@ -104,9 +116,9 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
         }, 200
 
 
-    @jwt_required  # 更新密碼，need jwt
+    @jwt_required()  # 更新密碼，need jwt
     def put(self):
-        arg = self.parser1.parse_args()
+        arg = self.parser2.parse_args()
         new_password = arg['new_password'] # 串資料庫
 
         if check_password( new_password ) == 422 :

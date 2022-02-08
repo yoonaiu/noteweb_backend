@@ -7,9 +7,14 @@ from flask_restful import Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from numpy import require
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, get_jwt, set_access_cookies, jwt_required
 import uuid
 import random
+
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
+
 
 # 寫在參數列的東西是該韓式需要的東西，但應該不是到時候接收 json 資料報的接收方式
 
@@ -50,7 +55,7 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
     parser2 = reqparse.RequestParser()
     parser2.add_argument( 'new_password', required = True )
 
-    # @jwt_required   # 若是沒有提交token或是token內容有問題時會直接返還錯誤 -> 那還會有下面 401 的狀況嗎
+    @jwt_required   # 若是沒有提交token或是token內容有問題時會直接返還錯誤 -> 那還會有下面 401 的狀況嗎
     def get(self):  # 取得帳戶資訊，傳進來的會是 jwt, 用 jwt 去看就好，jwt 可看出 userid
         user_id = get_jwt_identity()
         query = app.User.query.filter_by(user_id = user_id).first()
@@ -99,7 +104,7 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
         }, 200
 
 
-    # @jwt_required  # 更新密碼，need jwt
+    @jwt_required  # 更新密碼，need jwt
     def put(self):
         arg = self.parser1.parse_args()
         new_password = arg['new_password'] # 串資料庫
@@ -125,7 +130,9 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
             'message' : 'successfully change the password'
         }, 200
 
-
+#   _
+# /_+_\ there isn't space for UX improve here, name need to correct first than can know if the password is correct
+# other filter the frontend can do
 class Auth_login(Resource):
 
     parser1 = reqparse.RequestParser()

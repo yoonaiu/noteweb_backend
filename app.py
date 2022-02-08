@@ -2,10 +2,14 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource
 
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, get_jwt, set_access_cookies
 import auth
 import task
 import config
+
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/yoona/Documents/noteweb_backend/database/database.db' # do not use ~/Document
@@ -25,11 +29,28 @@ api.add_resource( task.Task_get, "/task/<string:task_id>" ) # 將 task_id(uuid �
 
 jwt = JWTManager()
 app.config['JWT_SECRET_KEY'] = config.jwt_secret_key  # 改成你設定的密鑰
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1) # 設 jwt expire time 為 1 小時
 jwt.init_app(app) # register this extension to your flask project
 
 
+@app.after_request
+def refresh_expiring_jwts(response):
+    try:
+        exp_timestamp = get_jwt()["exp"]
+        now = datetime.now(timezone.utc)
+        target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+        if target_timestamp > exp_timestamp:
+            access_token = create_access_token(identity=get_jwt_identity())
+            # set_access_cookies(response, access_token)
+            return {
+                'access_token' : access_token,
+            }, 200
+        else:
+            return response
 
-
+    except (RuntimeError, KeyError):
+        # Case where there is not a valid JWT. Just return the original respone
+        return response
 
 
 # table & create all

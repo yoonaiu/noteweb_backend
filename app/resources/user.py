@@ -2,7 +2,6 @@
 from email import message
 from os import access
 from flask import jsonify
-import app
 from click import password_option
 from flask_restful import Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
@@ -16,7 +15,9 @@ from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
 
+from app.models.user import UserModel
 
+""" -> not quite sure where to put this, maybe in app itself
 jwt = app.jwt
 @jwt.expired_token_loader
 def my_expired_token_callback(jwt_header, jwt_payload):
@@ -26,7 +27,7 @@ def my_expired_token_callback(jwt_header, jwt_payload):
 @jwt.invalid_token_loader
 def my_invalid_token_loader_callback(reason):
     return jsonify(invalid_reason = reason), 401
-
+"""
 
 # 寫在參數列的東西是該韓式需要的東西，但應該不是到時候接收 json 資料報的接收方式
 
@@ -40,7 +41,7 @@ def get_salt():
     return salt
 
 def check_name( name ):
-    name_query = app.User.query.filter_by(name = name).first()
+    name_query = UserModel.query.filter_by(name = name).first()
     if name_query != None :   # 如果已經存在 -> 409 return
         return 409
     elif ( not name.isalnum() ) or ( len(name) > 30 ) :
@@ -70,7 +71,8 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
     @jwt_required(optional = True)   # 若是沒有提交token或是token內容有問題時會直接返還錯誤 -> 那還會有下面 401 的狀況嗎
     def get(self):  # 取得帳戶資訊，傳進來的會是 jwt, 用 jwt 去看就好，jwt 可看出 userid
         user_id = get_jwt_identity()
-        query = app.User.query.filter_by(user_id = user_id).first()
+        # query = app.User.query.filter_by(user_id = user_id).first()
+        query = UserModel.query.filter_by( user_id = user_id ).first()
         if query == None :
             return{
                 'message' : 'token is not valid, unauthorized'
@@ -107,8 +109,8 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
         hash_password = generate_password_hash(arg['password'] + salt)  # the default hash function is sha1 -> maybe not that safe (?, can change
         user_id = str(uuid.uuid4())
 
-        app.db.session.add( app.User(user_id, name, hash_password, salt) )  # arg 從 json 擷取資訊
-        app.db.session.commit()  # need to commit after change
+        user_store = UserModel(user_id, name, hash_password, salt)
+        user_store.save_to_db()
 
         access_token = create_access_token(identity = user_id) # jwt
         return {
@@ -127,7 +129,7 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
             }, 422
 
         user_id = get_jwt_identity()
-        query = app.User.query.filter_by(user_id = user_id).first()
+        query = UserModel.query.filter_by(user_id = user_id).first()
         if query == None :
             return {
                 'message' : 'token is not valid, unauthorized'
@@ -136,7 +138,9 @@ class Auth (Resource): # 目前理解：函式參數列表明希望收到哪些�
         salt = query.salt  # use the original salt
         new_hash_password = generate_password_hash( new_password + salt )
         query.hash_password = new_hash_password
-        app.db.session.commit()  # need to commit after change
+
+        # app.db.session.commit()  # need to commit after change
+        query.save_change_to_db()
 
         return {
             'message' : 'successfully change the password'
@@ -153,7 +157,7 @@ class Auth_login(Resource):
 
     def post(self): # login
         arg = self.parser1.parse_args()  # -> pass in name, password
-        query = app.User.query.filter_by( name = arg['name'] ).first()
+        query = UserModel.query.filter_by( name = arg['name'] ).first()
 
         if query == None :
             return {

@@ -1,0 +1,1 @@
+jwt_secret_key = 'sakura'

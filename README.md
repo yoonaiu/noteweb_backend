@@ -7,4 +7,3 @@
 
 * How to run the program?
     1. cd to the app folder and run the command: flask run
-  

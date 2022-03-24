@@ -4,3 +4,5 @@ Dockerfile
 .dockerignore
 docker-compose.yml
 run.sh
+__pycache__
+README.md
